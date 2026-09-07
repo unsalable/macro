@@ -3,6 +3,16 @@
 Windows keyboard and mouse automation with precise timing — a Tauri 2 desktop app
 with a Rust input engine and a React front end.
 
+## Download
+
+Grab the latest build from the [Releases page](https://github.com/unsalable/macro/releases/latest):
+
+- **`FlowMacro-<version>-portable.exe`** — no installer, just double-click and run.
+- `FlowMacro_<version>_x64-setup.exe` — installer with a Start menu shortcut.
+- `FlowMacro_<version>_x64_en-US.msi` — MSI for managed deployments.
+
+The builds are unsigned, so SmartScreen may warn on first launch: *More info -> Run anyway*.
+
 ## Requirements
 
 - Windows 10/11
