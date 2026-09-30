@@ -85,6 +85,11 @@ pub struct AppSettings {
     pub history_limit: usize,
     #[serde(default)]
     pub onboarding_done: bool,
+    /// Looks for a new release on startup. On by default: the app injects
+    /// input system-wide, so an old build with a known bug is worth nagging
+    /// about.
+    #[serde(default = "default_true")]
+    pub auto_update_check: bool,
 }
 
 fn default_language() -> Language {
@@ -123,6 +128,7 @@ impl Default for AppSettings {
             hotkeys: HotkeyMap::default(),
             history_limit: default_history_limit(),
             onboarding_done: false,
+            auto_update_check: true,
         }
     }
 }

@@ -13,6 +13,10 @@ Grab the latest build from the [Releases page](https://github.com/unsalable/macr
 
 The builds are unsigned, so SmartScreen may warn on first launch: *More info -> Run anyway*.
 
+FlowMacro checks this Releases feed on startup and can install a new version by itself
+(Settings -> Updates, where the check can also be turned off). Update packages carry a
+minisign signature and are rejected unless they were signed with this project's key.
+
 ## Requirements
 
 - Windows 10/11

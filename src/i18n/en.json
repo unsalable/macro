@@ -226,7 +226,13 @@
     "performanceNote": "This setting only touches the interface. The macro engine runs on its own thread — whatever you pick here, your click rate (CPS) and timing accuracy stay the same.",
     "dataDesc": "Where your data lives and how much of it is kept.",
     "historyLimit": "Entries to keep",
-    "historyLimitDesc": "The History page keeps at most this many entries; older ones are dropped. A higher number uses more disk. (50–5000)"
+    "historyLimitDesc": "The History page keeps at most this many entries; older ones are dropped. A higher number uses more disk. (50–5000)",
+    "updates": "Updates",
+    "updatesDesc": "FlowMacro downloads and installs new versions from GitHub.",
+    "currentVersion": "Installed version {{version}}",
+    "autoUpdateCheck": "Check for updates on startup",
+    "autoUpdateCheckDesc": "Quietly looks for a newer version while the app starts.",
+    "updatePortableNote": "Update packages are signed and only install if they carry this project’s key. If you run the portable build, updating moves you to the installed build."
   },
   "hotkey": {
     "start": "Start",
@@ -239,6 +245,17 @@
     "stopDesc": "Stops the macro that is running.",
     "pauseDesc": "Pauses a running macro; press again to carry on where it left off.",
     "emergencyDesc": "Stops the engine at once, no matter what. The key for when something goes wrong."
+  },
+  "update": {
+    "idle": "Update status unknown.",
+    "checking": "Checking…",
+    "available": "New version ready: {{version}}",
+    "downloading": "Downloading…",
+    "downloadingPercent": "Downloading… {{percent}}%",
+    "restarting": "Installed, restarting the app…",
+    "upToDate": "You are on the latest version.",
+    "check": "Check for updates",
+    "install": "Update"
   },
   "toast": {
     "saved": "Saved",

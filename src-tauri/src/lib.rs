@@ -19,6 +19,21 @@ use crate::state::AppState;
 
 pub fn run() {
     tauri::Builder::default()
+        // First, before anything else can take a lock on the data folder: a
+        // second copy of FlowMacro would install its own hooks and fight the
+        // first over settings.json, so the newcomer hands its arguments to
+        // the running instance and exits (§2.1).
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                // The first instance may be sitting in the tray, which is
+                // exactly when a user tries to launch it again.
+                let _ = window.show();
+                let _ = window.unminimize();
+                let _ = window.set_focus();
+            }
+        }))
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_autostart::init(

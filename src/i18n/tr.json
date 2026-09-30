@@ -226,7 +226,13 @@
     "performanceNote": "Bu ayar yalnızca arayüzü etkiler. Makro motoru ayrı bir iş parçacığında çalışır; burada ne seçerseniz seçin tıklama hızınız (CPS) ve zamanlama hassasiyeti değişmez.",
     "dataDesc": "Kayıtlarının nerede tutulduğu ve ne kadarının saklanacağı.",
     "historyLimit": "Saklanacak kayıt sayısı",
-    "historyLimitDesc": "Geçmiş sayfasında en fazla bu kadar kayıt tutulur, eskiler silinir. Yüksek değer daha çok disk yeri kullanır. (50–5000)"
+    "historyLimitDesc": "Geçmiş sayfasında en fazla bu kadar kayıt tutulur, eskiler silinir. Yüksek değer daha çok disk yeri kullanır. (50–5000)",
+    "updates": "Güncellemeler",
+    "updatesDesc": "FlowMacro yeni sürümleri GitHub üzerinden indirir ve kurar.",
+    "currentVersion": "Yüklü sürüm {{version}}",
+    "autoUpdateCheck": "Açılışta güncelleme ara",
+    "autoUpdateCheckDesc": "Uygulama başlarken sessizce yeni sürüm var mı diye bakar.",
+    "updatePortableNote": "Güncelleme paketi imzalıdır ve yalnızca bu projenin anahtarıyla imzalanmışsa kurulur. Portable sürümü kullanıyorsan güncelleme seni kurulu sürüme geçirir."
   },
   "hotkey": {
     "start": "Başlat",
@@ -239,6 +245,17 @@
     "stopDesc": "Çalışan makroyu durdurur.",
     "pauseDesc": "Çalışan makroyu duraklatır; yeniden basınca kaldığı yerden devam eder.",
     "emergencyDesc": "Ne olursa olsun motoru anında durdurur. Bir şey ters giderse bu tuş."
+  },
+  "update": {
+    "idle": "Güncelleme durumu bilinmiyor.",
+    "checking": "Kontrol ediliyor…",
+    "available": "Yeni sürüm hazır: {{version}}",
+    "downloading": "İndiriliyor…",
+    "downloadingPercent": "İndiriliyor… %{{percent}}",
+    "restarting": "Kuruldu, uygulama yeniden başlatılıyor…",
+    "upToDate": "En son sürümü kullanıyorsun.",
+    "check": "Güncelleme ara",
+    "install": "Güncelle"
   },
   "toast": {
     "saved": "Kaydedildi",

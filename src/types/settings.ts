@@ -26,6 +26,8 @@ export interface AppSettings {
   hotkeys: HotkeyMap;
   historyLimit: number;
   onboardingDone: boolean;
+  /** Looks for a new GitHub release on startup. */
+  autoUpdateCheck: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -47,4 +49,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   },
   historyLimit: 500,
   onboardingDone: false,
+  autoUpdateCheck: true,
 };
