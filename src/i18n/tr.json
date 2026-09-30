@@ -161,7 +161,7 @@
     "repeatHint": "0 = siz durdurana kadar",
     "pickHint": "Hangi tuşun tıklanacağını seçmek için farenin bir parçasına tıkla.",
     "liveHint": "Değişiklikler anında kaydedilir ve bir sonraki başlatmada geçerli olur.",
-    "hotkeyHint": "Bir tuş ata; tıklayıcıyı her yerden başlatıp durdurur."
+    "hotkeyHint": "Bir tuş ya da fare yan tuşu (orta, 4, 5) ata; tıklayıcıyı her yerden başlatıp durdurur."
   },
   "keyboard": {
     "title": "Klavye",
@@ -233,7 +233,7 @@
     "stop": "Durdur",
     "pause": "Duraklat",
     "emergency": "Acil durdurma",
-    "press": "Bir tuş kombinasyonuna bas",
+    "press": "Bir tuşa ya da fare yan tuşuna bas",
     "clear": "Temizle",
     "startDesc": "Seçili makroyu başlatır; seçim yoksa en son çalıştırdığın makroyu.",
     "stopDesc": "Çalışan makroyu durdurur.",

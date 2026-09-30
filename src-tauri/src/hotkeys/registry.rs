@@ -118,16 +118,30 @@ impl Registry {
                             let _ = sink.try_send(event);
                         }
 
-                        if let HookEvent::Key { vk, extended, down } = event {
-                            let actions = matcher.lock().on_key(vk, extended, down, Instant::now());
-                            if crate::util::input_debug() {
-                                eprintln!(
-                                    "[hook] vk={vk:#04x} ext={extended} down={down} -> {actions:?}"
-                                );
+                        // Mouse side buttons are bindable too, so they go
+                        // through the same matcher as the keyboard (§18).
+                        let actions = match event {
+                            HookEvent::Key { vk, extended, down } => {
+                                let actions =
+                                    matcher.lock().on_key(vk, extended, down, Instant::now());
+                                if crate::util::input_debug() {
+                                    eprintln!(
+                                        "[hook] vk={vk:#04x} ext={extended} down={down} -> {actions:?}"
+                                    );
+                                }
+                                actions
                             }
-                            for action in actions {
-                                let _ = action_tx.send(action);
+                            HookEvent::MouseButton { button, down } => {
+                                let actions = matcher.lock().on_mouse_button(button, down);
+                                if crate::util::input_debug() {
+                                    eprintln!("[hook] button={button:?} down={down} -> {actions:?}");
+                                }
+                                actions
                             }
+                            _ => Vec::new(),
+                        };
+                        for action in actions {
+                            let _ = action_tx.send(action);
                         }
                     }
                 })

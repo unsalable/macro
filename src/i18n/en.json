@@ -161,7 +161,7 @@
     "repeatHint": "0 repeats until you stop it",
     "pickHint": "Click a part of the mouse to pick which button gets clicked.",
     "liveHint": "Changes are saved as you make them and apply the next time you start.",
-    "hotkeyHint": "Set a key and it starts and stops the clicker from anywhere."
+    "hotkeyHint": "Set a key or a mouse button (middle, 4, 5) and it starts and stops the clicker from anywhere."
   },
   "keyboard": {
     "title": "Keyboard",
@@ -233,7 +233,7 @@
     "stop": "Stop",
     "pause": "Pause",
     "emergency": "Emergency stop",
-    "press": "Press a key combination",
+    "press": "Press a key or a mouse side button",
     "clear": "Clear",
     "startDesc": "Runs the selected macro, or the one you ran most recently.",
     "stopDesc": "Stops the macro that is running.",

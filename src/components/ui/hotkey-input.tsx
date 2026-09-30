@@ -26,8 +26,20 @@ const MODIFIER_CODES = new Set([
 ]);
 
 /**
+ * Mouse buttons that may stand in for a key. Left and right are missing on
+ * purpose: binding them would swallow ordinary clicking — including the click
+ * that starts and stops this very capture.
+ */
+const MOUSE_CODES: Record<number, string> = {
+  1: 'MouseMiddle',
+  3: 'Mouse4',
+  4: 'Mouse5',
+};
+
+/**
  * Captures a real key combination. `event.code` is used rather than `key`, so
  * the recorded name matches the Rust side exactly and survives layout changes.
+ * Mouse side buttons are captured the same way (§18).
  */
 export function HotkeyInput({ value, onChange, disabled = false }: HotkeyInputProps) {
   const { t } = useTranslation();
@@ -38,6 +50,15 @@ export function HotkeyInput({ value, onChange, disabled = false }: HotkeyInputPr
 
   useEffect(() => {
     if (!capturing) return undefined;
+
+    const modifiersOf = (event: MouseEvent | KeyboardEvent): Modifier[] => {
+      const modifiers: Modifier[] = [];
+      if (event.ctrlKey) modifiers.push('ctrl');
+      if (event.shiftKey) modifiers.push('shift');
+      if (event.altKey) modifiers.push('alt');
+      if (event.metaKey) modifiers.push('win');
+      return modifiers;
+    };
 
     const handler = (event: KeyboardEvent) => {
       event.preventDefault();
@@ -50,18 +71,40 @@ export function HotkeyInput({ value, onChange, disabled = false }: HotkeyInputPr
       // Wait for a real key: a lone modifier is not a shortcut.
       if (MODIFIER_CODES.has(event.code)) return;
 
-      const modifiers: Modifier[] = [];
-      if (event.ctrlKey) modifiers.push('ctrl');
-      if (event.shiftKey) modifiers.push('shift');
-      if (event.altKey) modifiers.push('alt');
-      if (event.metaKey) modifiers.push('win');
-
-      onChange({ code: event.code, modifiers });
+      onChange({ code: event.code, modifiers: modifiersOf(event) });
       stop();
     };
 
+    const mouseDown = (event: MouseEvent) => {
+      const code = MOUSE_CODES[event.button];
+      if (!code) return;
+      // The webview treats buttons 3 and 4 as back/forward, and the middle
+      // button as autoscroll; swallowing the press keeps the capture from
+      // navigating the app away from the screen being edited.
+      event.preventDefault();
+      event.stopPropagation();
+      onChange({ code, modifiers: modifiersOf(event) });
+      stop();
+    };
+
+    // The release and the synthetic click of the same press would still reach
+    // the page after the capture ended, so they are swallowed too.
+    const swallow = (event: MouseEvent) => {
+      if (!MOUSE_CODES[event.button]) return;
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
     window.addEventListener('keydown', handler, { capture: true });
-    return () => window.removeEventListener('keydown', handler, { capture: true });
+    window.addEventListener('mousedown', mouseDown, { capture: true });
+    window.addEventListener('mouseup', swallow, { capture: true });
+    window.addEventListener('auxclick', swallow, { capture: true });
+    return () => {
+      window.removeEventListener('keydown', handler, { capture: true });
+      window.removeEventListener('mousedown', mouseDown, { capture: true });
+      window.removeEventListener('mouseup', swallow, { capture: true });
+      window.removeEventListener('auxclick', swallow, { capture: true });
+    };
   }, [capturing, onChange, stop]);
 
   return (

@@ -52,9 +52,39 @@ function AnimatedRoutes() {
   );
 }
 
+/**
+ * A desktop shell has no browser chrome, so the webview's built-in gestures
+ * only ever misfire here: the side buttons walk the hash history (and are
+ * bindable as hotkeys, so they get pressed on purpose), and dragging a nav
+ * link hands the user a `tauri.localhost` URL ghost.
+ */
+function useShellGestureGuards() {
+  useEffect(() => {
+    const isSideButton = (event: MouseEvent) => event.button === 3 || event.button === 4;
+
+    const blockNavigation = (event: MouseEvent) => {
+      if (isSideButton(event)) event.preventDefault();
+    };
+    const blockDrag = (event: DragEvent) => event.preventDefault();
+
+    window.addEventListener('mousedown', blockNavigation, { capture: true });
+    window.addEventListener('mouseup', blockNavigation, { capture: true });
+    window.addEventListener('auxclick', blockNavigation, { capture: true });
+    window.addEventListener('dragstart', blockDrag, { capture: true });
+    return () => {
+      window.removeEventListener('mousedown', blockNavigation, { capture: true });
+      window.removeEventListener('mouseup', blockNavigation, { capture: true });
+      window.removeEventListener('auxclick', blockNavigation, { capture: true });
+      window.removeEventListener('dragstart', blockDrag, { capture: true });
+    };
+  }, []);
+}
+
 export default function App() {
   const load = useSettingsStore((store) => store.load);
   const quality = useSettingsStore((store) => store.settings.animationQuality);
+
+  useShellGestureGuards();
 
   useEffect(() => {
     void load();

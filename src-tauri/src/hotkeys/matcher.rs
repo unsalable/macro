@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use std::time::{Duration, Instant};
 
 use crate::input::keycodes;
-use crate::macros::model::{Activation, Hotkey, Modifier};
+use crate::macros::model::{Activation, Hotkey, Modifier, MouseButton};
 
 /// Three taps of Escape inside this window force the engine to stop, whatever
 /// the user's hotkeys are set to. This safety net cannot be turned off from
@@ -123,38 +123,66 @@ impl Matcher {
             && hotkey.modifiers.iter().all(|needed| active.contains(needed))
     }
 
-    pub fn on_key(&mut self, vk: u16, extended: bool, down: bool, now: Instant) -> Vec<HotkeyAction> {
-        // Windows repeats WM_KEYDOWN roughly every 30 ms while a key is held,
-        // and the hook reports every one of them. A repeat is not a new press:
-        // letting it through toggles a macro dozens of times a second, so the
-        // run the user is holding the key to stop restarts before their finger
-        // comes up — which reads as "it will not turn off" (§19, §61).
-        let repeat = if down {
+    /// Records the press or release and reports whether it was auto-repeat.
+    ///
+    /// Windows repeats WM_KEYDOWN roughly every 30 ms while a key is held,
+    /// and the hook reports every one of them. A repeat is not a new press:
+    /// letting it through toggles a macro dozens of times a second, so the
+    /// run the user is holding the key to stop restarts before their finger
+    /// comes up — which reads as "it will not turn off" (§19, §61).
+    fn track_held(&mut self, vk: u16, down: bool) -> bool {
+        if down {
             // `insert` is false when the key was already down.
             !self.held.insert(vk)
         } else {
             self.held.remove(&vk);
             false
-        };
-        if repeat {
+        }
+    }
+
+    pub fn on_key(&mut self, vk: u16, extended: bool, down: bool, now: Instant) -> Vec<HotkeyAction> {
+        if self.track_held(vk, down) {
             return Vec::new();
         }
 
-        let mut actions = Vec::new();
-
         if down && vk == VK_ESCAPE && self.panic_enabled && self.register_escape(now) {
-            actions.push(HotkeyAction::EmergencyStop);
-            return actions;
+            return vec![HotkeyAction::EmergencyStop];
         }
 
         let Some(code) = keycodes::name_for_vk(vk, extended) else {
-            return actions;
+            return Vec::new();
         };
 
         // A modifier press on its own never triggers anything.
         if keycodes::is_modifier_key(code) {
-            return actions;
+            return Vec::new();
         }
+
+        self.dispatch(code, down)
+    }
+
+    /// The mouse side of the same stream: a bound side button drives hotkeys
+    /// exactly like a key, modifiers included (§18).
+    pub fn on_mouse_button(&mut self, button: MouseButton, down: bool) -> Vec<HotkeyAction> {
+        let (Some(vk), Some(code)) =
+            (keycodes::mouse_button_vk(button), keycodes::mouse_button_name(button))
+        else {
+            // Left and right are never bindable, so they are not tracked
+            // either — a stray entry in the held set would only confuse
+            // reconciliation.
+            return Vec::new();
+        };
+
+        if self.track_held(vk, down) {
+            return Vec::new();
+        }
+
+        self.dispatch(code, down)
+    }
+
+    /// Routes one resolved key/button name to the bindings that want it.
+    fn dispatch(&self, code: &str, down: bool) -> Vec<HotkeyAction> {
+        let mut actions = Vec::new();
 
         if down {
             if self.global.emergency_stop.as_ref().is_some_and(|h| self.matches(h, code)) {
@@ -491,6 +519,89 @@ mod tests {
         let nothing_down = |_vk: u16| false;
         assert_eq!(matcher.reconcile_held(&nothing_down), 1);
         assert_eq!(matcher.on_key(0x75, false, true, now), vec![HotkeyAction::Start]);
+    }
+
+    #[test]
+    fn a_side_button_toggles_a_macro() {
+        let mut matcher = Matcher::new();
+        matcher.set_macros(vec![MacroBinding {
+            macro_id: "m1".into(),
+            hotkey: hotkey("Mouse4", &[]),
+            activation: Activation::Toggle,
+        }]);
+
+        assert_eq!(
+            matcher.on_mouse_button(MouseButton::Mouse4, true),
+            vec![HotkeyAction::MacroToggle("m1".into())]
+        );
+        assert!(matcher.on_mouse_button(MouseButton::Mouse4, false).is_empty());
+        // A different button must not fire it.
+        assert!(matcher.on_mouse_button(MouseButton::Mouse5, true).is_empty());
+    }
+
+    #[test]
+    fn the_middle_button_can_drive_a_global_hotkey() {
+        let mut matcher = matcher();
+        matcher.set_global(GlobalBindings {
+            start: Some(hotkey("MouseMiddle", &[])),
+            ..GlobalBindings::default()
+        });
+        assert_eq!(
+            matcher.on_mouse_button(MouseButton::Middle, true),
+            vec![HotkeyAction::Start]
+        );
+    }
+
+    #[test]
+    fn a_side_button_chord_needs_its_modifier() {
+        let mut matcher = Matcher::new();
+        matcher.set_macros(vec![MacroBinding {
+            macro_id: "m1".into(),
+            hotkey: hotkey("Mouse5", &[Modifier::Shift]),
+            activation: Activation::Hold,
+        }]);
+        let now = Instant::now();
+
+        assert!(matcher.on_mouse_button(MouseButton::Mouse5, true).is_empty());
+        matcher.on_mouse_button(MouseButton::Mouse5, false);
+
+        matcher.on_key(0xA0, false, true, now); // Shift down
+        assert_eq!(
+            matcher.on_mouse_button(MouseButton::Mouse5, true),
+            vec![HotkeyAction::MacroHoldStart("m1".into())]
+        );
+        assert_eq!(
+            matcher.on_mouse_button(MouseButton::Mouse5, false),
+            vec![HotkeyAction::MacroHoldEnd("m1".into())]
+        );
+    }
+
+    #[test]
+    fn a_held_side_button_starts_exactly_once() {
+        let mut matcher = Matcher::new();
+        matcher.set_macros(vec![MacroBinding {
+            macro_id: "m1".into(),
+            hotkey: hotkey("Mouse4", &[]),
+            activation: Activation::Toggle,
+        }]);
+
+        assert_eq!(
+            matcher.on_mouse_button(MouseButton::Mouse4, true),
+            vec![HotkeyAction::MacroToggle("m1".into())]
+        );
+        assert!(matcher.on_mouse_button(MouseButton::Mouse4, true).is_empty());
+    }
+
+    #[test]
+    fn the_left_button_is_never_bindable() {
+        let mut matcher = Matcher::new();
+        matcher.set_macros(vec![MacroBinding {
+            macro_id: "m1".into(),
+            hotkey: hotkey("MouseLeft", &[]),
+            activation: Activation::Toggle,
+        }]);
+        assert!(matcher.on_mouse_button(MouseButton::Left, true).is_empty());
+        assert!(matcher.on_mouse_button(MouseButton::Right, true).is_empty());
     }
 
     #[test]

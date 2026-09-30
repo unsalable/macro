@@ -14,6 +14,13 @@ export function formatKeyCode(code: string): string {
   if (code.startsWith('Numpad')) return `Num ${code.slice(6)}`;
   if (code.startsWith('Arrow')) return code.slice(5);
   switch (code) {
+    // Mouse buttons a hotkey may be bound to (§18).
+    case 'MouseMiddle':
+      return 'Mouse 3';
+    case 'Mouse4':
+      return 'Mouse 4';
+    case 'Mouse5':
+      return 'Mouse 5';
     case 'Escape':
       return 'Esc';
     case 'Backquote':

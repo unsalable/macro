@@ -1,6 +1,6 @@
 [package]
 name = "flowmacro"
-version = "0.1.0"
+version = "0.2.0"
 description = "FlowMacro — keyboard and mouse automation"
 authors = ["FlowMacro"]
 edition = "2021"

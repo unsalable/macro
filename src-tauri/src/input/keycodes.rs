@@ -1,7 +1,7 @@
 //! Key naming uses the DOM `KeyboardEvent.code` vocabulary so the UI can
 //! capture a hotkey without any translation table of its own.
 
-use crate::macros::model::Modifier;
+use crate::macros::model::{Modifier, MouseButton};
 
 /// (code name, virtual key, needs KEYEVENTF_EXTENDEDKEY)
 pub struct KeyDef {
@@ -74,6 +74,32 @@ pub fn name_for_vk(vk: u16, extended: bool) -> Option<&'static str> {
         .find(|def| def.vk == vk && def.extended == extended)
         .or_else(|| KEYS.iter().find(|def| def.vk == vk))
         .map(|def| def.name)
+}
+
+/// Mouse buttons that may stand in for a key in a hotkey.
+///
+/// Left and right are deliberately absent: binding them would swallow
+/// ordinary clicking, and the hook cannot tell a hotkey press from the click
+/// the user meant for whatever is under the cursor.
+pub fn mouse_button_name(button: MouseButton) -> Option<&'static str> {
+    match button {
+        MouseButton::Middle => Some("MouseMiddle"),
+        MouseButton::Mouse4 => Some("Mouse4"),
+        MouseButton::Mouse5 => Some("Mouse5"),
+        MouseButton::Left | MouseButton::Right => None,
+    }
+}
+
+/// The virtual-key code Windows reports for the same button, so the held-key
+/// set (and its `GetAsyncKeyState` reconciliation) works for mouse buttons
+/// exactly as it does for keys.
+pub fn mouse_button_vk(button: MouseButton) -> Option<u16> {
+    match button {
+        MouseButton::Middle => Some(0x04),
+        MouseButton::Mouse4 => Some(0x05),
+        MouseButton::Mouse5 => Some(0x06),
+        MouseButton::Left | MouseButton::Right => None,
+    }
 }
 
 pub fn modifier_vk(modifier: Modifier) -> u16 {

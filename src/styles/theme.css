@@ -190,6 +190,9 @@
 @layer base {
   * {
     border-color: var(--border);
+    /* Nothing in the shell is a drag source: without this, pulling on a nav
+       link or an icon drags a `tauri.localhost` URL ghost around. */
+    -webkit-user-drag: none;
   }
 
   html,
